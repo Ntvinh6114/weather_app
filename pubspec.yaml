@@ -38,6 +38,10 @@ dependencies:
   http: ^1.6.0
   drift: ^2.32.1
   path_provider: ^2.1.5
+  geolocator: ^14.0.2
+  sqlite3_flutter_libs: ^0.6.0+eol
+  translator: ^1.0.4+1
+  crypto: ^3.0.7
 
 dev_dependencies:
   flutter_test:

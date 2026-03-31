@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/data/models/time_state.dart';
+import 'package:weather_app/utils/time_state.dart';
 
 class DailyWeather {
 
-  final String daily_id;
   final String location_id;
   final DateTime date;
   final double temp_max;
@@ -16,7 +15,6 @@ class DailyWeather {
   final TimeState state;
 
   DailyWeather({
-    required this.daily_id,
     required this.location_id,
     required this.date,
     required this.temp_max,

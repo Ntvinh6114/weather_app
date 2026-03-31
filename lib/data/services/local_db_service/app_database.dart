@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import '../../models/time_state.dart';
+import '../../../utils/time_state.dart';
 
 part 'app_database.g.dart';
 
@@ -45,7 +45,7 @@ class HourlyWeather extends Table {
   TextColumn get daily_id => text().references(DailyWeather, #daily_id)();
   DateTimeColumn get hour => dateTime()();
   RealColumn get temp => real()();
-  RealColumn get feed_like => real()();
+  RealColumn get feels_like => real()();
   TextColumn get condition => text()();
   TextColumn get icon => text()();
   RealColumn get humidity => real()();

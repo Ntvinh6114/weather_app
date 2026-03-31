@@ -3,17 +3,17 @@ import 'package:http/http.dart' as http;
 
 void main() async {
   // 1. Khai báo các thông tin cần gắn vào URL
-  final String city = "Nha Trang";
-    final String apiKey = "e2b6ea92a9cf7971c974bcf909cb6b42"; // <-- THAY KEY VÀO ĐÂY
+  final String location = "12.2461,109.1897";
+    final String apiKey = "Z7KQCQZT6MZMQBZ24TW8C7J9K"; // <-- THAY KEY VÀO ĐÂY
   final String units = "metric";
-  final String lang = "vi";
+  final DateTime now = DateTime.now();
+  final String include = 'hours';
 
   // 2. Gắn các thông tin vào URL thông qua Uri
-  final url = Uri.https('api.openweathermap.org', '/data/2.5/weather', {
-    'q': city,
-    'appid': apiKey,
-    'units': units,
-    'lang': lang,
+  final url = Uri.https('weather.visualcrossing.com', 'VisualCrossingWebServices/rest/services/timeline/${location}/${now.toIso8601String().split('T')[0]}', {
+    'key' : apiKey,
+    'unitGroup' : units,
+    'include' : include
   });
 
   print("Đang gọi URL: $url"); // Bạn sẽ thấy các tham số được gắn sau dấu ?
