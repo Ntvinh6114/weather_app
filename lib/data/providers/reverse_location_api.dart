@@ -1,30 +1,46 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:weather_app/common/values/api.dart';
-import 'package:weather_app/data/models/location.dart';
-
+import '../models/location.dart';
+import '../../common/values/api.dart';
 
 class ReverseLocationApi {
-  
-  final String BaseUrl = LOCATION_BASE_URL;
-  
+  // Ensure LOCATION_BASE_URL does not include 'https://'
+  static String get _baseUrl => LOCATION_BASE_URL;
+
+  final http.Client _httpClient;
+
+  ReverseLocationApi({http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client();
+
   Future<Location> getLocation(double lat, double lon) async {
-    final url = Uri.https(BaseUrl, 'reverse',
-    {
-      "lat" : lat,
-      "lon" : lon,
-      "format" : "json",
+    final url = Uri.https(_baseUrl, 'reverse', {
+      "lat": lat.toString(),
+      "lon": lon.toString(),
+      "format": "json",
     });
 
-    final response = await http.get(url);
+    try {
+      final response = await _httpClient.get(url,
+        headers: {
+          'User-Agent': 'Weather_App_Project',
+          'Accept': 'application/json',
+        });
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final address = data['address'];
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
 
-      return Location.fromJson(address);
-    } else {
-      throw Exception('Fail to load data!');
+        if (data == null || data['address'] == null) {
+          throw Exception('No address data found in the server response.');
+        }
+
+        return Location.fromJson(data);
+      } else {
+        // Case where server returns 4xx or 5xx errors
+        throw Exception('Failed to load location. Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      // General error (Network issue, parsing issue, etc.)
+      throw Exception('An error occurred while fetching location: $e');
     }
   }
 }

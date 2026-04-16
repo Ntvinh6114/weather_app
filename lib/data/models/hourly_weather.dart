@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:weather_app/utils/generate_id.dart';
 import 'package:weather_app/utils/time_state.dart';
 
 class HourlyWeather {
-
   final String location_id;
   final DateTime hour;
   final double temp;
@@ -13,8 +12,12 @@ class HourlyWeather {
   final double precip_prob;
   final double cloud_cover;
   final double wind_speed;
+  final double pressure;
   final int uv_index;
+  final int aqi;
   final TimeState state;
+
+  String get weather_id => generateId('${state.name}_${location_id}_${hour.toString()}');
 
   HourlyWeather({
     required this.location_id,
@@ -27,7 +30,9 @@ class HourlyWeather {
     required this.precip_prob,
     required this.cloud_cover,
     required this.wind_speed,
+    required this.pressure,
     required this.uv_index,
+    required this.aqi,
     required this.state,
   });
 
@@ -43,8 +48,10 @@ class HourlyWeather {
       precip_prob: json['precipprob'],
       cloud_cover: json['cloudcover'],
       wind_speed: json['windspeed'],
-      uv_index: json['uvindex'],
-      state: TimeState.today,
+      pressure: json['pressure'],
+      uv_index: (json['uvindex'] as num).toInt(),
+      aqi: (json['aqius'] as num?)?.toInt() ?? -1,
+      state: json['state'],
     );
   }
 }

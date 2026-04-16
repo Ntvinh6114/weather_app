@@ -1,90 +1,35 @@
-// import 'package:flutter/material.dart';
-// import 'package:geolocator/geolocator.dart';
-// import 'package:weather_app/data/services/location_service/get_location.dart';
-//
-//
-// class App extends StatelessWidget {
-//   App({super.key});
-//
-//   final location = LocationService();
-//   late Position? result = await location.getLocation();
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('text'),
-//       ),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             Text(result.toString()),
-//           ],
-//         ),
-//       )
-//     );
-//   }
-// }
-//
-//
-// void main() {
-//
-//   runApp(App());
-// }
-//
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:weather_app/app/pages/bindings/location_binding.dart';
+import 'package:weather_app/app/routes/app_pages.dart';
+import 'package:weather_app/data/providers/reverse_location_api.dart';
+import 'package:weather_app/data/providers/weather_api.dart';
+import 'package:weather_app/data/services/local_db_service/app_database.dart';
+import 'package:weather_app/app/routes/app_routes.dart';
+import 'package:weather_app/data/services/location_service/get_location.dart';
 
-import 'data/services/location_service/get_location.dart';
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class App extends StatefulWidget {
-  const App({super.key});
+  Get.lazyPut<AppDatabase>(() => AppDatabase());
+  Get.lazyPut<WeatherAPI>(() => WeatherAPI());
+  Get.lazyPut<ReverseLocationApi>(() => ReverseLocationApi());
+  Get.lazyPut<LocationService>(() => LocationService());
 
-  @override
-  State<App> createState() => _AppState();
+  runApp(MyApp());
 }
 
-class _AppState extends State<App> {
-  String result = "Chưa có dữ liệu";
 
-  final LocationService locationService = LocationService();
-
-  Future<void> loadPosition() async {
-    final position = await locationService.getLocation();
-
-    setState(() {
-      if (position == null) {
-        result = "Không có giá trị";
-      } else {
-        result = "${position.latitude} - ${position.longitude}";
-      }
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    loadPosition(); // gọi khi app chạy
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Location')),
-        body: Center(
-          child: Text(result),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: loadPosition,
-          child: const Icon(Icons.refresh),
-        ),
-      ),
+    return GetMaterialApp(
+      initialBinding: LocationBinding(),
+      initialRoute: AppRoutes.home,
+      getPages: AppPages.pages,
     );
   }
-}
-
-void main() {
-  runApp(const App());
 }

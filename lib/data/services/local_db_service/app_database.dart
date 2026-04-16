@@ -31,6 +31,7 @@ class DailyWeather extends Table {
   RealColumn get temp_min => real()();
   TextColumn get condition => text()();
   TextColumn get icon => text()();
+  TextColumn get description => text()();
   RealColumn get precip_prob => real()();
   DateTimeColumn get sunrise => dateTime().nullable()();
   DateTimeColumn get sunset => dateTime().nullable()();
@@ -42,7 +43,7 @@ class DailyWeather extends Table {
 
 class HourlyWeather extends Table {
   TextColumn get hourly_id => text()();
-  TextColumn get daily_id => text().references(DailyWeather, #daily_id)();
+  TextColumn get location_id => text().references(Location, #location_id)();
   DateTimeColumn get hour => dateTime()();
   RealColumn get temp => real()();
   RealColumn get feels_like => real()();
@@ -53,6 +54,7 @@ class HourlyWeather extends Table {
   RealColumn get cloud_cover => real()();
   RealColumn get wind_speed => real()();
   IntColumn get uv_index => integer()();
+  IntColumn get aqi => integer()();
   TextColumn get state => textEnum<TimeState>()();
 
   @override
