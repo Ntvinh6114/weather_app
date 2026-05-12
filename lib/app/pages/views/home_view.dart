@@ -4,6 +4,7 @@ import 'package:weather_app/app/pages/controllers/home_controller.dart';
 import 'package:weather_app/app/pages/controllers/location_controller.dart';
 import 'package:weather_app/app/routes/app_routes.dart';
 import 'package:weather_app/common/widgets/home_header.dart';
+import 'package:weather_app/common/widgets/uv_gauge.dart';
 import 'package:weather_app/common/widgets/weather_card.dart';
 import 'package:weather_app/common/theme/app_theme.dart';
 import 'package:weather_app/common/values/constants.dart';
@@ -120,7 +121,7 @@ class HomeView extends GetView<HomeController> {
                             body: (curWeather.value == null)
                                   ? Text("Đang tải...")
                                   : CustomChart(
-                                    data: controller.weather24hours.value!.map((e)
+                                    data: controller.weather24hours.map((e)
                                       => DataPoint(
                                           value: e.temp,
                                           iconPath: assetImagePath(e.icon),
@@ -145,7 +146,7 @@ class HomeView extends GetView<HomeController> {
                             body: (curWeather.value == null)
                               ? Text("Đang tải...")
                               : CustomChart(
-                                  data: controller.weather14days.value!.map((e)
+                                  data: controller.weather14days.map((e)
                                   => DataPoint(
                                       value: e.temp_max,
                                       iconPath: assetImagePath(e.icon),
@@ -156,13 +157,14 @@ class HomeView extends GetView<HomeController> {
                               onSelect: (data, index) {
                                 Get.toNamed(AppRoutes.hour,
                                     arguments: {
-                                  'day': controller.weather14days.value![index].date,
-                                  'location': locationCtrl.curLocation
+                                  'day': controller.weather14days[index].date,
+                                  'location': locationCtrl.selectedLocation.value
                                 });
                               },
                               tag: '14d',
                               selectable: true,
                             ),
+                            footer: Text("Nhấn vào ngày để xem thời tiết theo giờ"),
                           )
                       )
                   ),
@@ -175,14 +177,20 @@ class HomeView extends GetView<HomeController> {
                           builder: (w) => ContentBox(
                             title: Text("UV", style: Constants.subtitle,),
                             body: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(w.uv_index.toString(),
                                   style: Constants.info,),
                               ],
                             ),
-                            footer: Text(
-                              "An toàn!", style: Constants.content,),
+                            footer: uvDescription(w.uv_index),
+                            deco: [
+                              Positioned(
+                                top: 100.0,
+                                child: UVGauge(uv: w.uv_index)
+                              )
+                            ],
                           ),
                         )
                       ),

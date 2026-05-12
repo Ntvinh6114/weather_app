@@ -1,8 +1,7 @@
 String parseAddress(Map address) {
   // ===== GET WARD =====
-  String ward = address['suburb'] ??
-      address['village'] ??
-      address['town'] ??
+  String ward = address['town'] ??
+      address['suburb'] ??
       address['city_district'] ??
       '';
 

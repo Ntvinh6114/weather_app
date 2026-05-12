@@ -95,7 +95,9 @@ class CustomChart extends StatelessWidget {
       builder: (context, constraints) {
         final double chartHeight = constraints.maxHeight;
 
-        return Obx(() => SizedBox(
+        return Obx(()
+        {
+          return SizedBox(
           height: chartHeight,
           child: ScrollConfiguration(
             behavior: const ScrollBehavior().copyWith(overscroll: false),
@@ -106,13 +108,15 @@ class CustomChart extends StatelessWidget {
                 children: [
                   // ===== COLUMNS =====
                   Row(
-                    children: List.generate(data.length, (index) {
+                    children: List.generate(chartCtrl.data.length, (index) {
+                      var data = chartCtrl.data[index];
+
                       Widget columnContent = Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const SizedBox(height: 15),
                           Text(
-                            "${data[index].value.toInt()}$unit",
+                            "${data.value.toInt()}$unit",
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -123,15 +127,16 @@ class CustomChart extends StatelessWidget {
                           Column(
                             children: [
                               Image.asset(
-                                data[index].iconPath,
+                                data.iconPath,
                                 width: 35,
                                 height: 35,
                                 errorBuilder: (_, __, ___) =>
-                                const Icon(Icons.help_outline, color: Colors.white24),
+                                const Icon(
+                                    Icons.help_outline, color: Colors.white24),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                data[index].label,
+                                data.label,
                                 style: const TextStyle(
                                   color: Colors.white70,
                                   fontSize: 13,
@@ -156,11 +161,11 @@ class CustomChart extends StatelessWidget {
                           },
                           child: (index == chartCtrl.selectedIndex.value)
                               ? GlassBox(
-                                borderRadius: 16,
-                                opacity: 0.12,
-                                overflow: true,
-                                child: columnContent,
-                              )
+                            borderRadius: 16,
+                            opacity: 0.12,
+                            overflow: true,
+                            child: columnContent,
+                          )
                               : columnContent,
                         ),
                       );
@@ -182,8 +187,8 @@ class CustomChart extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ));
+          ),);
+        });
       },
     );
   }

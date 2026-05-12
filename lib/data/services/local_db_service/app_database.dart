@@ -17,7 +17,7 @@ class Location extends Table {
   RealColumn get lat => real()();
   RealColumn get lon => real()();
   BoolColumn get is_default => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get created_at => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get last_call => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {location_id};
@@ -33,8 +33,8 @@ class DailyWeather extends Table {
   TextColumn get icon => text()();
   TextColumn get description => text()();
   RealColumn get precip_prob => real()();
-  DateTimeColumn get sunrise => dateTime().nullable()();
-  DateTimeColumn get sunset => dateTime().nullable()();
+  DateTimeColumn get sunrise => dateTime()();
+  DateTimeColumn get sunset => dateTime()();
   TextColumn get state => textEnum<TimeState>()();
 
   @override
@@ -53,6 +53,7 @@ class HourlyWeather extends Table {
   RealColumn get precip_prob => real()();
   RealColumn get cloud_cover => real()();
   RealColumn get wind_speed => real()();
+  RealColumn get pressure => real()();
   IntColumn get uv_index => integer()();
   IntColumn get aqi => integer()();
   TextColumn get state => textEnum<TimeState>()();

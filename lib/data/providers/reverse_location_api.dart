@@ -4,7 +4,6 @@ import '../models/location.dart';
 import '../../common/values/api.dart';
 
 class ReverseLocationApi {
-  // Ensure LOCATION_BASE_URL does not include 'https://'
   static String get _baseUrl => LOCATION_BASE_URL;
 
   final http.Client _httpClient;
@@ -20,6 +19,8 @@ class ReverseLocationApi {
     });
 
     try {
+      print("Đã nhận vị trí!!");
+
       final response = await _httpClient.get(url,
         headers: {
           'User-Agent': 'Weather_App_Project',

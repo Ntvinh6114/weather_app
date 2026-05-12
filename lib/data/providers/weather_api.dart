@@ -1,252 +1,211 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 import 'package:weather_app/common/values/api.dart';
-import 'package:weather_app/data/models/daily_weather.dart';
-import 'package:weather_app/data/models/hourly_weather.dart';
 import 'package:weather_app/data/models/location.dart';
 import 'package:weather_app/data/services/local_db_service/app_database.dart' as db;
+import 'package:weather_app/utils/generate_description.dart';
 import 'package:weather_app/utils/time_state.dart';
 import 'package:get/get.dart';
 
 class WeatherAPI {
-  static final WeatherAPI _instance = WeatherAPI._internal();
+  String baseUrl = WEATHER_BASE_URL;
+  String pathUrl = WEATHER_PATH_URL;
+  String apiKey = WEATHER_API_KEY;
+  String elements = WEATHER_ELEMENTS;
 
-  String BaseUrl = WEATHER_BASE_URL;
-  String PathUrl = WEATHER_PATH_URL;
-  String ApiKey = WEATHER_API_KEY;
-
-  List<DailyWeather> listDaily = [];
-  List<HourlyWeather> listHourly = [];
-  HourlyWeather? current;
-
-  DateTime? lastCall;
-
-  bool _shouldCall() {
-    if (lastCall == null) {
-      lastCall = DateTime.now();
-      return true;
-    }
-
-    DateTime now = DateTime.now();
-    final difference = now.difference(lastCall!);
-
-    if (difference.inMinutes >= 30) {
-      lastCall = now;
-      return true;
-    }
-    return false;
-  }
-
-  factory WeatherAPI() {
-    return _instance;
-  }
-
-  WeatherAPI._internal();
 
   Future<void> loadDataWeather(Location location) async {
-    if (!_shouldCall()) {
-      print("Chưa hết tới gian gọi API.");
-      return;
-    }
-
     final double lat = location.lat;
     final double lon = location.lon;
+    final localDb = Get.find<db.AppDatabase>();
 
     final timeNow = DateTime.now();
     final String now = timeNow.toIso8601String().split("T")[0];
-    final String lastDay = timeNow.add(Duration(days: 14)).toIso8601String().split("T")[0];
+    final String lastDay =
+    timeNow.add(const Duration(days: 14)).toIso8601String().split("T")[0];
 
-    final url = Uri.https(BaseUrl, "$PathUrl/$lat,$lon/$now/$lastDay", {
-      "key": ApiKey,
+    final url = Uri.https(baseUrl, "$pathUrl/$lat,$lon/$now/$lastDay", {
+      "key": apiKey,
       "unitGroup": "metric",
       "include": "current,days,hours",
       "lang": "id",
-      "elements": "datetime,"
-          "tempmax,"
-          "tempmin,"
-          "sunrise,"
-          "sunset,"
-          "description,"
-          "temp,"
-          "feelslike,"
-          "conditions,"
-          "icon,"
-          "humidity,"
-          "precipprob,"
-          "cloudcover,"
-          "windspeed,"
-          "uvindex,"
-          "aqius,"
-          "pressure"
+      "elements": elements
     });
 
     try {
       final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+      if (response.statusCode != 200) {
+        throw Exception("Status: ${response.statusCode}");
+      }
 
-        // 1. Làm sạch danh sách cũ trước khi nạp mới
-        listDaily.clear();
-        listHourly.clear();
+      final data = json.decode(response.body);
 
-        // 2. Xử lý Current Weather
-        final curCon = data["currentConditions"];
-        if (curCon != null) {
-          // Lấy ngày đầu tiên trong danh sách để ghép cho current
-          String firstDayDate = data['days'][0]['datetime'];
-          curCon['datetime'] = DateTime.parse('${firstDayDate}T${curCon['datetime']}');
-          curCon["location_id"] = location.location_id;
-          curCon['state'] = TimeState.current;
-          current = HourlyWeather.fromJson(curCon);
+      db.HourlyWeatherCompanion? currentWeather;
+      final List<db.HourlyWeatherCompanion> hourlyList = [];
+      final List<db.DailyWeatherCompanion> dailyList = [];
+
+      final currentConditions = data["currentConditions"];
+      final days = data["days"] ?? [];
+
+      if (currentConditions != null && days.isNotEmpty) {
+        final firstDate = days.first["datetime"];
+        final currentDateTime =
+        DateTime.parse("${firstDate}T${currentConditions["datetime"]}");
+
+        currentWeather = db.HourlyWeatherCompanion.insert(
+          hourly_id: "${location.location_id}_current",
+          location_id: location.location_id,
+          hour: currentDateTime,
+          temp: (currentConditions["temp"] ?? 0).toDouble(),
+          feels_like: (currentConditions["feelslike"] ?? 0).toDouble(),
+          condition: currentConditions["conditions"] ?? "",
+          icon: currentConditions["icon"] ?? "",
+          humidity: (currentConditions["humidity"] ?? 0).toDouble(),
+          precip_prob: (currentConditions["precipprob"] ?? 0).toDouble(),
+          cloud_cover: (currentConditions["cloudcover"] ?? 0).toDouble(),
+          wind_speed: (currentConditions["windspeed"] ?? 0).toDouble(),
+          pressure: (currentConditions["pressure"] ?? 0).toDouble(),
+          uv_index: (currentConditions["uvindex"] ?? 0).toInt(),
+          aqi: (currentConditions["aqius"] ?? 0).toInt(),
+          state: TimeState.current,
+        );
+      }
+
+      for (final d in days) {
+        final dateStr = d["datetime"];
+
+        dailyList.add(
+          db.DailyWeatherCompanion.insert(
+            daily_id: "${location.location_id}_$dateStr",
+            location_id: location.location_id,
+            date: DateTime.parse(dateStr),
+            temp_max: (d["tempmax"] ?? 0).toDouble(),
+            temp_min: (d["tempmin"] ?? 0).toDouble(),
+            condition: d["conditions"] ?? "",
+            icon: d["icon"] ?? "",
+            description: generateViDescription(d["description"]),
+            precip_prob: (d["precipprob"] ?? 0).toDouble(),
+            state: TimeState.future,
+            sunrise: DateTime.parse("${dateStr}T${d["sunrise"]}"),
+            sunset: DateTime.parse("${dateStr}T${d["sunset"]}"),
+          ),
+        );
+
+        final hours = d["hours"] ?? [];
+
+        for (final h in hours) {
+          final hourDate = DateTime.parse("${dateStr}T${h["datetime"]}");
+
+          hourlyList.add(
+            db.HourlyWeatherCompanion.insert(
+              hourly_id: "${location.location_id}_${hourDate.toIso8601String()}",
+              location_id: location.location_id,
+              hour: hourDate,
+              temp: (h["temp"] ?? 0).toDouble(),
+              feels_like: (h["feelslike"] ?? 0).toDouble(),
+              condition: h["conditions"] ?? "",
+              icon: h["icon"] ?? "",
+              humidity: (h["humidity"] ?? 0).toDouble(),
+              precip_prob: (h["precipprob"] ?? 0).toDouble(),
+              cloud_cover: (h["cloudcover"] ?? 0).toDouble(),
+              wind_speed: (h["windspeed"] ?? 0).toDouble(),
+              pressure: (h["pressure"] ?? 0).toDouble(),
+              uv_index: (h["uvindex"] ?? 0).toInt(),
+              aqi: (h["aqius"] ?? 0).toInt(),
+              state: TimeState.future,
+            ),
+          );
+        }
+      }
+
+      await localDb.transaction(() async {
+        await (localDb.delete(localDb.hourlyWeather)
+          ..where((tbl) => tbl.location_id.equals(location.location_id)))
+            .go();
+
+        await (localDb.delete(localDb.dailyWeather)
+          ..where((tbl) => tbl.location_id.equals(location.location_id)))
+            .go();
+
+        if (currentWeather != null) {
+          await localDb.into(localDb.hourlyWeather).insert(currentWeather);
         }
 
-        var days = data["days"] ?? [];
-        listDaily = days.map<DailyWeather>((d) {
-          d["location_id"] = location.location_id;
-          d["state"] = TimeState.future;
-
-          String currentDateStr = d['datetime'];
-          d["sunrise"] = "${currentDateStr}T${d["sunrise"]}";
-          d["sunset"] = "${currentDateStr}T${d["sunset"]}";
-
-          var hours = d["hours"] ?? [];
-
-          List<HourlyWeather> hourlyModels = hours.map<HourlyWeather>((h) {
-            h["datetime"] = DateTime.parse("${currentDateStr}T${h["datetime"]}");
-            h["location_id"] = location.location_id;
-            h['state'] = TimeState.future;
-            return HourlyWeather.fromJson(h);
-          }).toList();
-
-          listHourly.addAll(hourlyModels);
-
-          return DailyWeather.fromJson(d);
-        }).toList();
-
-      } else {
-        throw Exception('Status: ${response.statusCode}');
-      }
+        await localDb.batch((batch) {
+          batch.insertAll(localDb.hourlyWeather, hourlyList);
+          batch.insertAll(localDb.dailyWeather, dailyList);
+        });
+      });
     } catch (e) {
-      throw Exception('WeatherAPI Error: $e');
+      throw Exception("WeatherAPI Error: $e");
     }
   }
 
-  Future<HourlyWeather?> getCurrentWeather(Location location) async {
+
+  Future<void> getCurrentWeather(Location location) async {
     final double lat = location.lat;
     final double lon = location.lon;
+    final localDb = Get.find<db.AppDatabase>();
 
     final timeNow = DateTime.now();
     final String now = timeNow.toIso8601String().split("T")[0];
 
-    final url = Uri.https(BaseUrl, "$PathUrl/$lat,$lon/$now", {
-      "key": ApiKey,
+    final url = Uri.https(baseUrl, "$pathUrl/$lat,$lon/$now", {
+      "key": apiKey,
       "unitGroup": "metric",
       "include": "current",
       "contentType": "json",
       "lang": "id",
-      "elements": "datetime,"
-          "tempmax,"
-          "tempmin,"
-          "sunrise,"
-          "sunset,"
-          "description,"
-          "temp,"
-          "feelslike,"
-          "conditions,"
-          "icon,"
-          "humidity,"
-          "precipprob,"
-          "cloudcover,"
-          "windspeed,"
-          "uvindex,"
-          "aqius,"
-          "pressure"
+      "elements": elements
     });
 
     try {
       final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final curCon = data["currentConditions"];
-        if (curCon != null) {
-          String dateStr = data['days'][0]['datetime'];
-          curCon['datetime'] = '${dateStr}T${curCon['datetime']}';
-          curCon["location_id"] = location.location_id;
-          return HourlyWeather.fromJson(curCon);
-        }
+
+      if (response.statusCode != 200) {
+        throw Exception("Status: ${response.statusCode}");
       }
+
+      final data = json.decode(response.body);
+      final currentConditions = data["currentConditions"];
+
+      if (currentConditions == null) return;
+
+      final dateStr = data["days"][0]["datetime"];
+      final currentDateTime = DateTime.parse("${dateStr}T${currentConditions["datetime"]}");
+
+      final currentWeather = db.HourlyWeatherCompanion.insert(
+        hourly_id: "${location.location_id}_current",
+        location_id: location.location_id,
+        hour: currentDateTime,
+        temp: (currentConditions["temp"] ?? 0).toDouble(),
+        feels_like: (currentConditions["feelslike"] ?? 0).toDouble(),
+        condition: currentConditions["conditions"] ?? "",
+        icon: currentConditions["icon"] ?? "",
+        humidity: (currentConditions["humidity"] ?? 0).toDouble(),
+        precip_prob: (currentConditions["precipprob"] ?? 0).toDouble(),
+        cloud_cover: (currentConditions["cloudcover"] ?? 0).toDouble(),
+        wind_speed: (currentConditions["windspeed"] ?? 0).toDouble(),
+        pressure: (currentConditions["pressure"] ?? 0).toDouble(),
+        uv_index: (currentConditions["uvindex"] ?? 0).toInt(),
+        aqi: (currentConditions["aqius"] ?? 0).toInt(),
+        state: TimeState.current,
+      );
+
+      await localDb.transaction(() async {
+        await (localDb.delete(localDb.hourlyWeather)
+          ..where((tbl) =>
+          tbl.location_id.equals(location.location_id) &
+          tbl.state.equals(TimeState.current.name)))
+            .go();
+
+        await localDb.into(localDb.hourlyWeather).insert(currentWeather);
+      });
     } catch (e) {
-      throw Exception('GetCurrentWeather Error: $e');
+      throw Exception("GetCurrentWeather Error: $e");
     }
-
-    return null;
   }
-}
-
-Future<void> updateHourData(Location location, List<HourlyWeather> listHour) async {
-  // xóa thông tin cũ
-  db.AppDatabase localDb = Get.find<db.AppDatabase>();
-
-  await (localDb.delete(localDb.hourlyWeather)
-  ..where((tbl) => tbl.location_id.equals(location.location_id)))
-  .go();
-
-  // cập nhật thông tin mới
-  await (localDb.batch((batch) {
-    batch.insertAll(localDb.hourlyWeather,
-        listHour.map((e) {
-          return db.HourlyWeatherCompanion
-              .insert(
-                hourly_id: e.weather_id,
-                location_id: e.location_id,
-                hour: e.hour,
-                temp: e.temp,
-                feels_like: e.feels_like,
-                condition: e.condition,
-                icon: e.icon,
-                humidity: e.humidity,
-                precip_prob: e.precip_prob,
-                cloud_cover: e.cloud_cover,
-                wind_speed: e.wind_speed,
-                uv_index: e.uv_index,
-                aqi: e.aqi,
-                state: e.state
-              );
-        }
-      ).toList()
-    );
-  }));
-}
-
-Future<void> updateDailyData(Location location, List<DailyWeather> listDaily) async {
-  // xóa thông tin cũ
-  db.AppDatabase localDb = Get.find<db.AppDatabase>();
-
-  await (localDb.delete(localDb.dailyWeather)
-  ..where((tbl) => tbl.location_id.equals(location.location_id)))
-  .go();
-
-  await (localDb.batch((batch) {
-    batch.insertAll(
-        localDb.dailyWeather,
-        listDaily.map(
-            (e) {
-              return db.DailyWeatherCompanion.insert(
-                  daily_id: e.weather_id,
-                  location_id: e.location_id,
-                  date: e.date,
-                  temp_max: e.temp_max,
-                  temp_min: e.temp_min,
-                  condition: e.condition,
-                  icon: e.icon,
-                  description: e.description,
-                  precip_prob: e.precip_prob,
-                  state: e.state
-              );
-            },
-        ).toList()
-    );
-  },));
 }

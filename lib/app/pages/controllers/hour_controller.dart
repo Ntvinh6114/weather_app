@@ -1,46 +1,73 @@
+import 'package:drift/drift.dart';
 import 'package:get/get.dart';
-import 'package:weather_app/app/pages/controllers/location_controller.dart';
 import 'package:weather_app/data/models/hourly_weather.dart';
 import 'package:weather_app/data/models/location.dart';
-import 'package:weather_app/data/providers/weather_api.dart';
 import 'package:weather_app/data/services/local_db_service/app_database.dart' hide Location, HourlyWeather;
-import 'package:weather_app/data/services/location_service/get_location.dart';
 
 class HourController extends GetxController {
   final AppDatabase _localDb;
-  final WeatherAPI _wa;
-  final LocationService _ls;
 
-  HourController(this._localDb, this._wa, this._ls);
+  HourController(this._localDb);
 
-  var day = DateTime(2026).obs;
-  var location = Rx<Location>(Get.find<LocationController>().selectedLocation.value!);
+  final day = Rxn<DateTime>();
+  final location = Rxn<Location>();
 
-  var hourSelected = 0.obs;
-  var listHourly = Rx<List<HourlyWeather>>([]);
-
+  final hourSelected = 0.obs;
+  final listHourly = RxList<HourlyWeather>([]);
+  Rx<HourlyWeather> get curWeather => Rx<HourlyWeather>(listHourly[hourSelected.value]);
 
   @override
   void onReady() async {
-    day.value = Get.arguments['day'];
-    location.value = Get.arguments['location'];
+    super.onReady();
 
-    await getWeather(location.value);
+    final args = Get.arguments;
+
+    day.value = args["day"] as DateTime;
+    location.value = args["location"] as Location;
+
+    await getWeather();
   }
 
-  Future<void> getWeather(Location location) async {
-    listHourly.value = _wa.listHourly
-        .where((e) {
-          int day = e.hour.day;
-          int month = e.hour.month;
-          int year = e.hour.year;
+  Future<void> getWeather() async {
+    if (day.value == null || location.value == null) return;
 
-          return (
-              day == this.day.value.day
-              && month == this.day.value.month
-              && year == this.day.value.year
-          );
-        },)
+    final selectedDay = day.value!;
+
+    final startOfDay = DateTime(
+      selectedDay.year,
+      selectedDay.month,
+      selectedDay.day,
+    );
+
+    final nextDay = startOfDay.add(const Duration(days: 1));
+
+    final result = await (_localDb.select(_localDb.hourlyWeather)
+      ..where((tbl) =>
+      tbl.location_id.equals(location.value!.location_id) &
+      tbl.hour.isBiggerOrEqualValue(startOfDay) &
+      tbl.hour.isSmallerThanValue(nextDay))
+      ..orderBy([
+            (tbl) => OrderingTerm(
+          expression: tbl.hour,
+          mode: OrderingMode.asc,
+        )
+      ]))
+        .get();
+
+    listHourly.value = result
+        .map((e) => HourlyWeather.fromDb(e))
         .toList();
+
+    if (listHourly.isNotEmpty) {
+      hourSelected.value = 0;
+    }
+
+    print("Ngày chọn: $startOfDay");
+    print("Số giờ lấy được: ${listHourly.length}");
+  }
+
+  void changeHour(int index) {
+    hourSelected.value = index;
+    curWeather.value = listHourly[index];
   }
 }

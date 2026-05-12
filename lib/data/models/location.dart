@@ -9,6 +9,8 @@ class Location {
   final double lat;
   final double lon;
   final bool is_default;
+  DateTime? last_call;
+
   String get location_id => generateId(normalizeAddressKey(this.address));
   String get location_name => address.split(',')[0];
 
@@ -17,6 +19,7 @@ class Location {
     required this.lat,
     required this.lon,
     required this.is_default,
+    this.last_call
   });
 
   factory Location.fromJson(Map<String, dynamic> json) {
@@ -36,6 +39,8 @@ class Location {
         address: data.address,
         lat: data.lat,
         lon: data.lon,
-        is_default: data.is_default);
+        is_default: data.is_default,
+        last_call: data.last_call
+    );
   }
 }

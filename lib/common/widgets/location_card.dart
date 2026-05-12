@@ -8,23 +8,23 @@ import 'package:weather_app/data/models/hourly_weather.dart';
 import 'package:weather_app/utils/background_over_time.dart';
 
 class LocationCard extends StatelessWidget {
-  final MapEntry<String, HourlyWeather?> value;
+  final MapEntry<String, HourlyWeather> value;
   
   const LocationCard({super.key, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    final [id, name] = value.key.split('_');
+    final name = value.key;
 
     final locationCtrl = Get.find<LocationController>();
 
     return Slidable(
-      key: Key(id),
+      key: Key(value.value.location_id),
       endActionPane: ActionPane(
           motion: const ScrollMotion(),
           extentRatio: 0.25,
           children: [
-            (locationCtrl.curLocation.value == id)
+            (locationCtrl.curLocation.value == value.value.location_id)
             ? CustomSlidableAction(
               backgroundColor: Colors.transparent,
               onPressed: (context) {  },
@@ -39,7 +39,7 @@ class LocationCard extends StatelessWidget {
             )
             : CustomSlidableAction(
                 onPressed: (context) {
-                  locationCtrl.deleteLocation(id);
+                  locationCtrl.deleteLocation(value.value.location_id);
                 },
                 backgroundColor: Colors.transparent,
                 child: Container(
@@ -57,7 +57,7 @@ class LocationCard extends StatelessWidget {
         padding: const EdgeInsets.all(Constants.padding),
         child: GestureDetector(
           onTap: () {
-            locationCtrl.changeDefault(id);
+            locationCtrl.changeDefault(value.value.location_id);
             Get.offNamed(AppRoutes.home);
           },
           child: Container(
@@ -83,7 +83,7 @@ class LocationCard extends StatelessWidget {
                             text: name, style: Constants.subtitle
                         ),
                         WidgetSpan(
-                            child: (locationCtrl.selectedLocation.value!.location_id == id)
+                            child: (locationCtrl.selectedLocation.value!.location_id == value.value.location_id)
                                 ? Icon(Icons.location_on, size: Constants.iconSize)
                                 : SizedBox()
                         )
@@ -92,9 +92,7 @@ class LocationCard extends StatelessWidget {
                   )),
                   Expanded(
                     flex: 1,
-                    child: (value.value == null)
-                      ? SizedBox()
-                      : Image.asset(assetImagePath(value.value!.icon))
+                    child: Image.asset(assetImagePath(value.value.icon))
                   )
                 ],
               )
