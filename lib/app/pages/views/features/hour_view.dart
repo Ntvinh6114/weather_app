@@ -20,7 +20,6 @@ class HourView extends GetView<HourController> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
       home: Scaffold(
         appBar: AppBar(
           leading: IconButton(

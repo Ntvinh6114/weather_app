@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:weather_app/app/pages/controllers/auth_controller.dart';
 import 'package:weather_app/app/pages/controllers/home_controller.dart';
 import 'package:weather_app/app/pages/controllers/location_controller.dart';
 import 'package:weather_app/app/routes/app_routes.dart';
@@ -20,6 +21,7 @@ class HomeView extends GetView<HomeController> {
   HomeView({super.key});
 
   final locationCtrl = Get.find<LocationController>();
+  final authCtrl = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +47,17 @@ class HomeView extends GetView<HomeController> {
                  IconButton(
                    onPressed: () {Get.toNamed(AppRoutes.location);},
                    icon: Icon(Icons.location_on),
+                   iconSize: 35,
+                 ),
+                 authCtrl.checkLoggedUser()
+                 ? IconButton(
+                   onPressed: () { Get.toNamed(AppRoutes.profile); },
+                   icon: Icon(Icons.person),
+                   iconSize: 35,
+                 )
+                 : IconButton(
+                   onPressed: () { Get.toNamed(AppRoutes.login); },
+                   icon: Icon(Icons.login),
                    iconSize: 35,
                  )
                ],
@@ -264,7 +277,17 @@ class HomeView extends GetView<HomeController> {
                   SizedBox(height: 20.0,)
                 ],
               ),
-            )
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Get.toNamed(AppRoutes.chat);
+              },
+              backgroundColor: AppTheme.myMainColor,
+              child: Icon(
+                Icons.message,
+                size: 35
+              ),
+            ),
         ),
       )),
     );

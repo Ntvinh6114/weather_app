@@ -4,6 +4,7 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../../utils/time_state.dart';
+import 'package:sqflite/sqflite.dart';
 
 part 'app_database.g.dart';
 
@@ -72,10 +73,27 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 }
 
+// LazyDatabase _openConnection() {
+//   return LazyDatabase(() async {
+//     final dbFolder = await getApplicationDocumentsDirectory();
+//     final file = File(p.join(dbFolder.path, 'weather.sqlite'));
+//     return NativeDatabase(file);
+//   });
+// }
+
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'weather.sqlite'));
-    return NativeDatabase(file);
+    final dbFolder = await getDatabasesPath();
+
+    final file = File(p.join(dbFolder, 'weather.sqlite'),);
+    print("DB PATH: ${file.path}");
+
+    return NativeDatabase(
+      file,
+      logStatements: true,
+      setup: (db) {
+        db.execute('PRAGMA journal_mode=WAL;');
+      }
+    );
   });
 }

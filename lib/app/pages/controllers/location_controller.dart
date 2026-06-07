@@ -135,7 +135,6 @@ class LocationController extends GetxController {
 
       await _localDb.into(_localDb.location).insertOnConflictUpdate(companion);
 
-      curLocation.value = location.location_id;
       selectedLocation.value = location;
     } catch (e) {
       throw Exception("Không thể thêm vị trí: $e");
@@ -180,7 +179,7 @@ class LocationController extends GetxController {
       .go();
 
     listDisplayLocation.removeWhere(
-          (element) => element.value.location_id == id
+      (element) => element.value.location_id == id
     );
 
     await (_localDb.delete(_localDb.hourlyWeather)
@@ -190,6 +189,8 @@ class LocationController extends GetxController {
     await (_localDb.delete(_localDb.dailyWeather)
       ..where((tbl) => tbl.location_id.equals(id)))
       .go();
+
+
   }
 
   Future<void> updateLocation(Location location) async {

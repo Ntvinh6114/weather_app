@@ -4,9 +4,9 @@ import 'package:weather_app/app/pages/controllers/location_controller.dart';
 import 'package:weather_app/app/routes/app_routes.dart';
 import 'package:weather_app/common/widgets/location_card.dart';
 
-import '../../../common/theme/app_theme.dart';
-import '../../../common/values/constants.dart';
-import '../../../data/models/hourly_weather.dart';
+import '../../../../common/theme/app_theme.dart';
+import '../../../../common/values/constants.dart';
+import '../../../../data/models/hourly_weather.dart';
 
 class LocationView extends GetView<LocationController> {
   const LocationView({super.key});
@@ -20,7 +20,6 @@ class LocationView extends GetView<LocationController> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
       home: Scaffold(
         appBar: AppBar(
           leadingWidth: 40,
