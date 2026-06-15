@@ -16,7 +16,7 @@ class ChatView extends GetView<ChatController> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
 
       child: Scaffold(
-        // TÍNH NĂNG QUAN TRỌNG NHẤT: Tự động co bóp giao diện đẩy lên trên bàn phím
+        // Tự động co bóp giao diện đẩy lên trên bàn phím
         resizeToAvoidBottomInset: true,
 
         backgroundColor: theme.scaffoldBackgroundColor,
@@ -28,31 +28,30 @@ class ChatView extends GetView<ChatController> {
         // Dùng SafeArea để bảo vệ nội dung không bị dính vào tai thỏ/thanh điều hướng
         body: SafeArea(
           child: Obx(() {
-            if (!controller.isLoggedIn.value) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lock_outline, size: 60, color: isDark ? Colors.grey[500] : Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text("Vui lòng đăng nhập để sử dụng Trợ lý AI",
-                      style: TextStyle(
-                          fontSize: 16,
-                          color: isDark ? Colors.grey[300] : Colors.black54
-                      ),
+            return (!controller.isLoggedIn.value)
+            ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.lock_outline, size: 60, color: isDark ? Colors.grey[500] : Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text("Vui lòng đăng nhập để sử dụng Trợ lý AI",
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.grey[300] : Colors.black54
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => Get.toNamed('/login'),
-                      icon: const Icon(Icons.login),
-                      label: const Text("Đăng nhập ngay"),
-                    ),
-                  ],
-                ),
-              );
-            }
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => Get.toNamed('/login'),
+                    icon: const Icon(Icons.login),
+                    label: const Text("Đăng nhập ngay"),
+                  ),
+                ],
+              ),
+            )
 
-            return Column(
+            : Column(
               children: [
                 // 1. DANH SÁCH TIN NHẮN
                 Expanded(

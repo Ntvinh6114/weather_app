@@ -110,10 +110,10 @@ class _AQIPainter extends CustomPainter {
 Text aqiDescription(int aqi) {
   final textStyle = Constants.content.copyWith(color: _getAqiColor(aqi));
 
-  if (0 < aqi && aqi < 50) return Text("Tốt", style: textStyle);
-  if (51 < aqi && aqi < 100) return Text("Trung bình", style: textStyle);
-  if (101 < aqi && aqi < 150) return Text("Kém", style: textStyle);
-  if (151 < aqi && aqi < 200) return Text("Xấu", style: textStyle);
-  if (201 < aqi && aqi < 250) return Text("Rất xấu", style: textStyle);
+  if (0 <= aqi && aqi < 50) return Text("Tốt", style: textStyle);
+  if (51 <= aqi && aqi < 100) return Text("Trung bình", style: textStyle);
+  if (101 <= aqi && aqi < 150) return Text("Kém", style: textStyle);
+  if (151 <= aqi && aqi < 200) return Text("Xấu", style: textStyle);
+  if (201 <= aqi && aqi < 250) return Text("Rất xấu", style: textStyle);
   return Text("Nguy hại", style: textStyle);
 }

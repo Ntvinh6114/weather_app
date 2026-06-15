@@ -11,7 +11,7 @@ class Location {
   final bool is_default;
   DateTime? last_call;
 
-  String get location_id => generateId(normalizeAddressKey(this.address));
+  String get location_id => generateId(normalizeAddressKey(address));
   String get location_name => address.split(',')[0];
 
   Location({
@@ -23,10 +23,10 @@ class Location {
   });
 
   factory Location.fromJson(Map<String, dynamic> json) {
-    final address = parseAddress(json['address']);
+    final address = json['display_name'];
 
     return Location(
-      address: address,
+      address: parseAddress(address),
       lat: double.parse(json['lat']),
       lon: double.parse(json['lon']),
       is_default: false,
@@ -42,5 +42,13 @@ class Location {
         is_default: data.is_default,
         last_call: data.last_call
     );
+  }
+
+  Map<String, dynamic> toSyncJson() {
+    return {
+      "address": address,
+      "latitude": lat,
+      "longitude": lon,
+    };
   }
 }

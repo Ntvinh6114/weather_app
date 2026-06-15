@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:weather_app/app/pages/controllers/auth_controller.dart';
+import 'package:weather_app/app/routes/app_routes.dart';
 
 class ProfileView extends GetView<AuthController> {
   const ProfileView({super.key});
@@ -63,6 +64,32 @@ class ProfileView extends GetView<AuthController> {
               }),
 
               const Spacer(),
+
+              // --- NÚT ĐỔI MẬT KHẨU ---
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Get.toNamed(AppRoutes.verify);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor, // Dùng màu xanh chủ đạo
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    elevation: 1,
+                  ),
+                  icon: const Icon(Icons.lock_reset_rounded),
+                  label: const Text(
+                    "Đổi mật khẩu",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
 
               SizedBox(
                 width: double.infinity,

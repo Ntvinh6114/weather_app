@@ -13,6 +13,8 @@ class LocationView extends GetView<LocationController> {
 
   @override
   Widget build(BuildContext context) {
+
+    controller.syncLocationsWithCloud();
     controller.getListCurWeather();
 
     var textCtrler = TextEditingController();

@@ -140,7 +140,8 @@ class HourView extends GetView<HourController> {
                                 ContentBox(
                                   title: Text("UV", style: Constants.subtitle,),
                                   body: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(w.uv_index.toString(),
                                         style: Constants.info,),
@@ -148,7 +149,10 @@ class HourView extends GetView<HourController> {
                                   ),
                                   footer: uvDescription(w.uv_index),
                                   deco: [
-                                    UVGauge(uv: w.uv_index)
+                                    Positioned(
+                                        top: 100.0,
+                                        child: UVGauge(uv: w.uv_index)
+                                    )
                                   ],
                                 ),
                           )

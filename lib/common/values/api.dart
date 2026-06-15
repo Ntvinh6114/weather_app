@@ -11,4 +11,4 @@ const String WEATHER_ELEMENTS = "datetime,tempmax,tempmin,sunrise,sunset,descrip
 const String LOCATION_BASE_URL = "nominatim.openstreetmap.org";
 
 // my api
-const String MY_API_URL = "http://10.0.2.2:8000";
+const String MY_API_URL = "10.0.2.2:8000";

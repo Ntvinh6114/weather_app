@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:weather_app/app/pages/controllers/location_controller.dart';
 import 'package:weather_app/app/routes/app_routes.dart';
 import '../../../data/providers/my_api.dart';
 
@@ -38,11 +39,12 @@ class AuthController extends GetxController {
   final isPasswordHidden = true.obs;
   final isConfirmPasswordHidden = true.obs;
 
-  // @override
-  // void onInit() {
-  //
-  //   super.onInit();
-  // }
+  @override
+  void onReady() {
+    isPasswordHidden.value = true;
+    isConfirmPasswordHidden.value = true;
+    super.onReady();
+  }
 
   @override
   void onClose() {
@@ -72,6 +74,11 @@ class AuthController extends GetxController {
     }
 
     return false;
+  }
+
+  bool syncLocation() {
+
+    return true;
   }
 
   /// Hàm thực hiện Đăng xuất, xóa sạch dữ liệu lưu trong máy
@@ -222,6 +229,7 @@ class AuthController extends GetxController {
       _resetToken = result['reset_token'];
 
       Get.snackbar("Xác thực thành công", result['message'] ?? "Mời bạn nhập mật khẩu mới.");
+      Get.offAndToNamed(AppRoutes.password);
     } catch (e) {
       Get.snackbar("Xác thực thất bại", e.toString().replaceAll("Exception: ", ""));
     } finally {

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:weather_app/app/pages/controllers/location_controller.dart';
+import 'package:weather_app/data/models/location.dart';
 import 'package:weather_app/data/providers/my_api.dart';
 import 'package:weather_app/app/pages/controllers/auth_controller.dart';
-import 'package:weather_app/app/pages/controllers/location_controller.dart';
 
 class ChatController extends GetxController {
   final MyApi _api = MyApi();
   final AuthController _authCtrl = Get.find<AuthController>();
-  // final LocationController _locationCtrl = Get.find<LocationController>();
+  final LocationController _locationCtrl = Get.find<LocationController>();
 
   var messages = <dynamic>[].obs;
   var isSending = false.obs;
@@ -17,9 +18,9 @@ class ChatController extends GetxController {
   final scrollController = ScrollController();
 
   @override
-  void onInit() {
-    super.onInit();
+  void onReady() {
     _checkLoginStatus();
+    super.onReady();
   }
 
   void _checkLoginStatus() {
@@ -57,19 +58,15 @@ class ChatController extends GetxController {
       isSending.value = true;
 
       // 2. Định dạng ngày tháng và vị trí hiện tại khớp với ChatRequest
-      String currentDate = DateTime.now().toIso8601String();
-      Map<String, dynamic> locationData = {
-        "name": "Đông Ninh Hòa, Khánh Hòa",
-        "lat": 12.48,
-        "lon": 109.13
-      };
+      String currentDate = DateTime.now().toIso8601String().substring(0, 10);
+      Location currentLocation = await _locationCtrl.getCurLocation();
 
       // 3. Gọi API
       String reply = await _api.sendChatMessage(
         token: token,
         message: text,
         currentDate: currentDate,
-        currentLocation: locationData,
+        currentLocation: currentLocation.address
       );
 
       // 4. Thêm tin nhắn từ AI

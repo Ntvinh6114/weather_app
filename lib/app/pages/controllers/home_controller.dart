@@ -81,6 +81,9 @@ class HomeController extends GetxController {
       // Gọi API và lưu trực tiếp vào database
       await _api.loadDataWeather(location);
 
+      // // xóa dữ liệu cũ
+      // await _deleteWeatherFromDb(location);
+
       // Đọc dữ liệu mới từ DB để cập nhật UI
       await _loadWeatherFromDb(location);
 

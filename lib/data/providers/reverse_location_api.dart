@@ -15,7 +15,7 @@ class ReverseLocationApi {
     final url = Uri.https(_baseUrl, 'reverse', {
       "lat": lat.toString(),
       "lon": lon.toString(),
-      "format": "json",
+      "format": "json"
     });
 
     try {

@@ -7,7 +7,7 @@ class MyApi {
 
   // --- 1. CHỨC NĂNG SEARCH CHỖ Ở (BẠN ĐÃ VIẾT) ---
   Future<List<dynamic>> searchLocation(String query) async {
-    final uri = Uri.parse("$_baseUrl/search?q=$query");
+    final uri = Uri.parse("http://$_baseUrl/search?q=$query");
     final response = await http.get(uri);
 
     if (response.statusCode != 200) {
@@ -23,7 +23,7 @@ class MyApi {
     required String email,
     required String password,
   }) async {
-    final uri = Uri.parse("$_baseUrl/auth/login");
+    final uri = Uri.parse("http://$_baseUrl/auth/login");
 
     final response = await http.post(
       uri,
@@ -44,7 +44,7 @@ class MyApi {
 
   // --- 3. ĐĂNG KÝ: BƯỚC 1 - YÊU CẦU GỬI OTP ---
   Future<Map<String, dynamic>> registerSendOtp({required String email}) async {
-    final uri = Uri.parse("$_baseUrl/auth/register/send-otp");
+    final uri = Uri.parse("http://$_baseUrl/auth/register/send-otp");
 
     final response = await http.post(
       uri,
@@ -68,7 +68,7 @@ class MyApi {
     required String password,
     required String confirmPassword,
   }) async {
-    final uri = Uri.parse("$_baseUrl/auth/register");
+    final uri = Uri.parse("http://$_baseUrl/auth/register");
 
     final response = await http.post(
       uri,
@@ -93,7 +93,7 @@ class MyApi {
 
   // --- 5. QUÊN MẬT KHẨU: BƯỚC 1 - GỬI OTP KHÔI PHỤC ---
   Future<Map<String, dynamic>> passwordForgot({required String email}) async {
-    final uri = Uri.parse("$_baseUrl/auth/password/forgot");
+    final uri = Uri.parse("http://$_baseUrl/auth/password/forgot");
 
     final response = await http.post(
       uri,
@@ -114,7 +114,7 @@ class MyApi {
     required String email,
     required String otpCode,
   }) async {
-    final uri = Uri.parse("$_baseUrl/auth/password/verify-otp");
+    final uri = Uri.parse("http://$_baseUrl/auth/password/verify-otp");
 
     final response = await http.post(
       uri,
@@ -139,7 +139,7 @@ class MyApi {
     required String newPassword,
     required String confirmPassword,
   }) async {
-    final uri = Uri.parse("$_baseUrl/auth/password/reset");
+    final uri = Uri.parse("http://$_baseUrl/auth/password/reset");
 
     final response = await http.post(
       uri,
@@ -161,7 +161,7 @@ class MyApi {
 
   // --- 8. AI CHAT: LẤY LỊCH SỬ CHAT ---
   Future<List<dynamic>> getChatHistory(String token) async {
-    final uri = Uri.parse("$_baseUrl/chat/history?limit=50");
+    final uri = Uri.parse("http://$_baseUrl/chat/history?limit=50");
     final response = await http.get(
       uri,
       headers: {
@@ -183,9 +183,9 @@ class MyApi {
     required String token,
     required String message,
     required String currentDate,
-    required Map<String, dynamic> currentLocation,
+    required String currentLocation
   }) async {
-    final uri = Uri.parse("$_baseUrl/chat/");
+    final uri = Uri.parse("http://$_baseUrl/chat/");
     final response = await http.post(
       uri,
       headers: {
@@ -205,6 +205,33 @@ class MyApi {
     } else {
       _handleError(response);
       return "Lỗi kết nối tới hệ thống.";
+    }
+  }
+
+  Future<List<dynamic>> syncLocations({
+    required String token,
+    required List<Map<String, dynamic>> locations,
+  }) async {
+    final uri = Uri.parse("http://$_baseUrl/location/sync");
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({
+        "locations": locations, // Mảng chứa các map gồm: address, latitude, longitude
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Giải mã bằng UTF-8 để không bị lỗi ký tự Tiếng Việt (có dấu)
+      final decodedData = jsonDecode(utf8.decode(response.bodyBytes));
+      return decodedData["data"] ?? []; // Trả về danh sách vị trí máy local đang thiếu
+    } else {
+      _handleError(response);
+      return [];
     }
   }
 

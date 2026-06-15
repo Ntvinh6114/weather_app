@@ -164,8 +164,7 @@ class HomeView extends GetView<HomeController> {
                                       value: e.temp_max,
                                       iconPath: assetImagePath(e.icon),
                                       label: "${e.date.day}/${e.date.month}"
-                                  )
-                                  ).toList(),
+                                  )).toList(),
                               unit: "°C",
                               onSelect: (data, index) {
                                 Get.toNamed(AppRoutes.hour,
